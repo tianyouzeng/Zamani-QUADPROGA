@@ -1,0 +1,65 @@
+Only in ./Zamani-QUADPROGA: Instances
+Only in ./Zamani-QUADPROGA: main.m
+diff --color -u -r '--exclude=.git' ./QUADPROGA/mosek_semi.m ./Zamani-QUADPROGA/mosek_semi.m
+--- ./QUADPROGA/mosek_semi.m	2024-02-03 16:12:36.505379607 +0800
++++ ./Zamani-QUADPROGA/mosek_semi.m	2024-02-02 16:21:13.379689710 +0800
+@@ -52,7 +52,7 @@
+   param.MSK_IPAR_OPF_WRITE_HEADER=0;
+   param.MSK_DPAR_INTPNT_CO_TOL_REL_GAP=10^-5;
+  
+-  [~,res] = mosekopt('maximize info',prob,param); 
++  [~,res] = mosekopt('maximize info echo(0)',prob,param); 
+   
+   r=res.sol.itr.xx(end);
+   G1=vec2mat(res.sol.itr.xx(1:m^2),m);  
+diff --color -u -r '--exclude=.git' ./QUADPROGA/quadproga.m ./Zamani-QUADPROGA/quadproga.m
+--- ./QUADPROGA/quadproga.m	2024-02-03 16:12:36.505379607 +0800
++++ ./Zamani-QUADPROGA/quadproga.m	2024-02-03 23:36:58.323885451 +0800
+@@ -1,4 +1,4 @@
+-function [x,fval,time,lb] = quadproga(Q,c,A,b)
++function [x,fval,time,lb,valp,vald] = quadproga(Q,c,A,b)
+ 
+ 
+ % QUADPROGM globally solves the following concave quadratic
+@@ -24,7 +24,7 @@
+ br(i).lo=inf;
+ br(i).up=-inf;
+ br(i).f=0;% father index
+-eps=10^(-3);
++eps=10^(-6);
+ val_p=inf;
+ val_d=-inf;
+ VAL_D=inf(1,L);
+@@ -33,6 +33,7 @@
+ maxT=500;
+ XQ=-ones(100,n);%   it is used to record incumbent solution
+ j_XQ=1;
++recorded=0;
+ tic
+  while(1)
+      tf = arrayfun(@(k) ~isempty(br(k).inx), 1:numel(br));
+@@ -96,8 +97,13 @@
+             br(k)=[];
+             br= br(~cellfun(@isempty,{br.inx}));%delete empty row 
+      end
+-    val_d=max(min(VAL_D));   
+-    if val_p-val_d<=10^-3 || toc>=maxT
++    val_d=max(min(VAL_D));
++    if ~recorded % record primal/dual value in first iteration
++        valp = val_p;
++        vald = val_d;
++        recorded=1;
++    end
++    if (val_p-val_d) / abs(val_p)<=10^-6 || toc>=maxT
+          break
+     end
+  end
+diff --color -u -r '--exclude=.git' ./QUADPROGA/README.md ./Zamani-QUADPROGA/README.md
+--- ./QUADPROGA/README.md	2024-02-03 16:12:36.505379607 +0800
++++ ./Zamani-QUADPROGA/README.md	2024-02-04 01:17:44.295835123 +0800
+@@ -1,3 +1,2 @@
+ # QUADPROGA
+-This code provides global optimal solution of concave quadratic programs. The code is implemend on MATLAB. 
+-Moreover, to apply this code, you need install MOSEK and CPLEX packages.
++This is forked from the repository https://github.com/molsemzamani/QUADPROGA, which contains the code of the paper *[A new algorithm for concave quadratic programming](https://link.springer.com/article/10.1007/s10898-019-00787-w)* by Moslem Zamani.
+Only in ./Zamani-QUADPROGA: repo_diff.diff
